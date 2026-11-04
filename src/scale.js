@@ -11,7 +11,7 @@
 // 저장되는 값: scale_1 … scale_N (원점수, 역채점 전), scale_total (역채점 반영 합계), scale_n_items
 // 역채점 문항: 7, 8, 9, 13, 14
 const SCALE = {
-  title: "단축형 종결 욕구 척도 (NFCS)",
+  title: "개인 성향에 대한 사전 설문",   // 참가자에게 보이는 제목 (척도 이름은 화면에 노출하지 않음)
   instruction: "자신에게 가장 가까운 응답에 체크해 주세요.",
   points: 6,
   low: "전혀 동의하지 않는다",
