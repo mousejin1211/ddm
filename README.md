@@ -49,7 +49,7 @@ https://mousejin1211.github.io/ddm/?pid=P01
 `n_frames`·`frame_mean`·`frame_sd`·`frame_max`·`n_long_frames`(공칭 간격의 1.5배 초과), `n_events`(시행 중 창 이탈 등 이벤트 수).
 전체 행에 `pid`, `km`, `km_source`(url / fixed_default), `refresh_hz`, `frames_per_patch`, `deltas`, `test_mode`가 붙습니다.
 `display_check` 행: 주사율, 화면·창 크기, devicePixelRatio, 전체화면 여부, user agent.
-`post_survey` 행: `device`, `guess`, `disturb`, `event_log`(blur/focus/탭 전환/전체화면/크기 변경 타임스탬프 JSON).
+`post_survey` 행: `device`, `event_log`(blur/focus/탭 전환/전체화면/크기 변경 타임스탬프 JSON).
 
 ## 배포 (GitHub Pages)
 repo → Settings → Pages → Source: *Deploy from a branch*, Branch: `main` / `/ (root)` → Save.

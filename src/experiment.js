@@ -92,7 +92,10 @@
 
     const specList = (perLevel) => {
       const list = [];
-      C.deltas.forEach((d, i) => { for (let k = 0; k < perLevel; k++) list.push({ level: i + 1, delta: d, truth: k % 2 === 0 ? "bright" : "dark" }); });
+      C.deltas.forEach((d, i) => {
+        const first = i % 2 === 0 ? "bright" : "dark", second = first === "bright" ? "dark" : "bright";   // 홀수일 때 남는 1개를 난이도마다 번갈아 배정
+        for (let k = 0; k < perLevel; k++) list.push({ level: i + 1, delta: d, truth: k % 2 === 0 ? first : second });
+      });
       return shuffle(list);
     };
     const trialsFor = (mode, list, tag, breakEvery) => {
@@ -226,17 +229,15 @@
     tl.push(space(`<div class="center"><h3>연습이 끝났습니다</h3><p>이제 본 과제를 시작합니다. 연습과 같은 방식입니다.<br>중간에 쉬는 시간이 있습니다.</p></div>`, { data: { task_phase: "instr_double" } }));
     tl.push(...trialsFor("double", specList(C.nDouble), "main_double", C.breakDouble));
 
-    // ===== 사후 문항 =====
+    // ===== 사후 문항 (사용 기기 1문항만) =====
     tl.push({
       type: jsPsychSurveyHtmlForm,
       preamble: "<h3>마지막 질문입니다</h3>",
       html: `<div class="form-row"><label>사용한 기기</label><select name="device" required>
-          <option value="">선택</option><option value="laptop">노트북</option><option value="desktop">데스크톱</option><option value="other">기타</option></select></div>
-        <div class="form-row"><p>이 연구가 무엇을 알아보려는 것이라고 생각하셨나요? (자유롭게)</p><textarea name="guess"></textarea></div>
-        <div class="form-row"><p>과제 중 방해 요인(소음, 알림, 화면 문제 등)이 있었나요? (없으면 비워 두세요)</p><textarea name="disturb"></textarea></div>`,
+          <option value="">선택</option><option value="laptop">노트북</option><option value="desktop">데스크톱</option><option value="other">기타</option></select></div>`,
       button_label: "제출", data: { task_phase: "post_survey" },
       on_finish: (d) => {
-        d.device = d.response.device; d.guess = d.response.guess; d.disturb = d.response.disturb;
+        d.device = d.response.device;
         d.event_log = JSON.stringify(window.DDM_EVENTS);          // 창 이탈·전체화면·크기 변경 기록
       },
     });
