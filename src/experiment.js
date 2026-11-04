@@ -113,8 +113,12 @@
           data: { task_phase: tag, mode, trial_n: i + 1, level: s.level, delta: s.delta, truth: s.truth, p_white: 0.5 + (s.truth === "bright" ? s.delta : -s.delta) },
         });
         if (breakEvery && (i + 1) % breakEvery === 0 && i + 1 < list.length) {
-          out.push(space(`<div class="center"><p>잠시 쉬어 가세요.</p><p>진행: ${i + 1} / ${list.length}</p>
-            <p class="muted">눈이 피로하면 잠깐 눈을 감았다 뜨세요. 준비되면 계속하세요.</p></div>`, { data: { task_phase: "break" } }));
+          // 자유 휴식: 원하는 만큼 쉬고 버튼을 눌러 재개 (rt = 휴식 시간 ms가 데이터에 남음)
+          out.push({
+            type: jsPsychHtmlButtonResponse, choices: ["계속하기"], data: { task_phase: "break", break_after: i + 1 },
+            stimulus: `<div class="center"><p>잠시 쉬어 가세요.</p><p>진행: ${i + 1} / ${list.length}</p>
+              <p class="muted">원하는 만큼 쉬셔도 됩니다. 눈이 피로하면 잠깐 눈을 감았다 뜨세요.<br>준비되면 아래 버튼을 눌러 주세요.</p></div>`,
+          });
         }
       });
       return out;
