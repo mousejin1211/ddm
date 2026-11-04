@@ -24,6 +24,7 @@ https://mousejin1211.github.io/ddm/?pid=P01
 | `pid` | – | 참가자 번호 |
 | `d` | `0.02,0.04,0.08` | 난이도 Δ (어려움→쉬움). 파일럿에서 정확도 약 .65/.80/.95에 맞게 조정 |
 | `km` | 0 (고정) | R2 키 배정 0(F 확인) 또는 1(J 확인) |
+| `ord` | sd | 블록 순서. `sd` = 단일→이중, `ds` = 이중→단일. 참가자마다 링크로 지정(번갈아 배정). 생략하면 sd로 실행되고 `order_source`에 `fixed_default`로 남음 |
 | `ns` / `nd` | 36 / 100 | 단일/이중 난이도당 본 시행 수 |
 | `nps` / `npd` | 9 / 9 | 연습 시행 수(총) |
 | `brks` / `brkd` | 36 / 50 | 휴식 간격(시행). 휴식은 자유롭게 쉬고 "계속하기" 버튼으로 재개, 휴식 시간은 `break` 행의 `rt`(ms) |
@@ -53,7 +54,7 @@ https://mousejin1211.github.io/ddm/?pid=P01
 `r1_key`·`r1_choice`·`rt1`(ms, 자극 onset 기준)·`r1_correct`, `r2_key`·`r2_action`(confirm/overturn)·`r2_choice`·`rt2_abs`(onset 기준)·`t2`(R1→R2 간격),
 `final_correct`, `same_key`(R2 키 = R1 키), `status`(ok / r1_timeout / r2_timeout),
 `n_frames`·`frame_mean`·`frame_sd`·`frame_max`·`n_long_frames`(공칭 간격의 1.5배 초과), `n_events`(시행 중 창 이탈 등 이벤트 수).
-전체 행에 `pid`, `km`, `km_source`(url / fixed_default), `refresh_hz`, `frames_per_patch`, `deltas`, `test_mode`가 붙습니다.
+전체 행에 `pid`, `order`, `order_source`(url / fixed_default / invalid_default), `km`, `km_source`(url / fixed_default), `refresh_hz`, `frames_per_patch`, `deltas`, `test_mode`가 붙습니다.
 `display_check` 행: 주사율, 화면·창 크기, devicePixelRatio, 전체화면 여부, user agent.
 `scale` 행: `scale_1`…`scale_N`(원점수), `scale_total`(역채점 반영 합계).
 `post_survey` 행: `device`, `event_log`(blur/focus/탭 전환/전체화면/크기 변경 타임스탬프 JSON).

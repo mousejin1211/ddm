@@ -118,7 +118,10 @@
       pid, run_id: runId, code_version: CODE_VERSION, km, km_source: kmSource,
       deltas: C.deltas.join("/"), n_single_per_level: C.nSingle, n_double_per_level: C.nDouble,
       test_mode: C.nosave || C.debug || C.nofs,
+      order: C.order, order_source: C.orderSource,   // sd = 단일→이중, ds = 이중→단일
     });
+
+    const order = C.order;
 
     // ---------- 도우미
     const space = (html, extra) => Object.assign({
@@ -261,41 +264,69 @@
       });
     }
 
-    // ===== 단일반응 =====
-    tl.push(space(`<h3>과제 안내 (1/3)</h3>
-      <p>검은색과 흰색 점으로 이루어진 정사각형이 화면에 나타납니다. 점들의 배열은 계속 바뀝니다.</p>
-      <p>이 정사각형에서 <b>흰 점이 검은 점보다 더 많은지</b>, 아니면 <b>더 적은지</b> 판단해 주세요.</p>`, { data: { task_phase: "instr_single" } }));
-    tl.push(space(`<h3>과제 안내 (2/3)</h3>
-      <p>흰 점이 더 많다고 판단되면 <b>"밝다"</b> → <span class="kbd">J</span> 키<br>
-         검은 점이 더 많다고 판단되면 <b>"어둡다"</b> → <span class="kbd">F</span> 키</p>
-      <p>왼손 검지는 <span class="kbd">F</span>, 오른손 검지는 <span class="kbd">J</span> 위에 올려 두세요.</p>`, { data: { task_phase: "instr_single" } }));
-    tl.push(space(`<h3>과제 안내 (3/3)</h3>
-      <p>빨리 누르는 것보다 <b>정확하게</b> 판단하는 것이 중요합니다. 시간 제한은 두지 않습니다.</p>
-      <p>${limitTxt}</p>
-      <p>응답 후에 <b>정답/오답</b>이 표시됩니다. 거의 구분이 안 되는 시행도 있으니, 확신이 없어도 최선의 판단을 해 주세요.</p>
-      <p>먼저 연습 시행을 해 보겠습니다.</p>`, { data: { task_phase: "instr_single" } }));
-    tl.push(...trialsFor("single", specList(Math.ceil(C.nPracSingle / 3)).slice(0, C.nPracSingle), "practice_single", 0));
-    tl.push(space(`<div class="center"><h3>연습이 끝났습니다</h3><p>이제 본 과제를 시작합니다. 연습과 같은 방식입니다.</p></div>`, { data: { task_phase: "instr_single" } }));
-    tl.push(...trialsFor("single", specList(C.nSingle), "main_single", C.breakSingle));
+    // ===== 블록 순서: URL ord=sd(단일→이중, 기본) / ord=ds(이중→단일) =====
+    // 먼저 하는 블록에는 기본 과제(밝다/어둡다, 키) 설명을 포함하고, 나중 블록은 "다음 과제는 방식이 다릅니다"로 시작한다.
+    const basicPages = (n, tot) => [
+      space(`<h3>과제 안내 (${n}/${tot})</h3>
+        <p>검은색과 흰색 점으로 이루어진 정사각형이 화면에 나타납니다. 점들의 배열은 계속 바뀝니다.</p>
+        <p>이 정사각형에서 <b>흰 점이 검은 점보다 더 많은지</b>, 아니면 <b>더 적은지</b> 판단해 주세요.</p>`, { data: { task_phase: "PHASE" } }),
+      space(`<h3>과제 안내 (${n + 1}/${tot})</h3>
+        <p>흰 점이 더 많다고 판단되면 <b>"밝다"</b> → <span class="kbd">J</span> 키<br>
+           검은 점이 더 많다고 판단되면 <b>"어둡다"</b> → <span class="kbd">F</span> 키</p>
+        <p>왼손 검지는 <span class="kbd">F</span>, 오른손 검지는 <span class="kbd">J</span> 위에 올려 두세요.</p>`, { data: { task_phase: "PHASE" } }),
+    ];
+    const withPhase = (arr, ph) => arr.map(t => Object.assign({}, t, { data: Object.assign({}, t.data, { task_phase: ph }) }));
 
-    // ===== 이중반응 =====
-    tl.push(space(`<div class="center"><h3>잘 하셨습니다</h3><p>다음 과제는 방식이 조금 다릅니다. 안내를 잘 읽어 주세요.</p></div>`, { data: { task_phase: "instr_double" } }));
-    tl.push(space(`<h3>새 과제 안내 (1/3)</h3>
-      <p>이번에는 <b>한 시행에서 두 번</b> 응답합니다.</p>
-      <p><b>첫 번째 응답:</b> 이전과 같이 <span class="kbd">F</span>(어둡다) 또는 <span class="kbd">J</span>(밝다)를 누릅니다.</p>
-      <p>첫 응답 후에도 <b>정사각형은 계속 바뀝니다.</b></p>`, { data: { task_phase: "instr_double" } }));
-    tl.push(space(`<h3>새 과제 안내 (2/3)</h3>
-      <p><b>두 번째 응답:</b> 첫 번째 응답이 맞다고 생각하면 <b>"확인"</b>, 바꾸고 싶으면 <b>"번복"</b>을 누릅니다.</p>
-      <p style="font-size:26px" class="center">확인 → <span class="kbd">${confirmKey}</span> &nbsp;&nbsp;&nbsp; 번복 → <span class="kbd">${overturnKey}</span></p>
-      <p>두 번째 응답 때는 화면 아래에 이 키가 표시됩니다. 번복하면 첫 응답과 반대 답이 최종 응답이 됩니다.</p>`, { data: { task_phase: "instr_double" } }));
-    tl.push(space(`<h3>새 과제 안내 (3/3)</h3>
-      <p><b>최종 응답(두 번째 응답)</b>의 정확도만 중요합니다. 첫 번째 응답의 정오는 점수에 반영되지 않습니다. 다만 첫 응답은 반드시 해 주세요.</p>
-      <p>시간 제한은 두지 않으며 정확하게 판단해 주세요. ${limitTxt}</p>
-      <p>응답 후에 최종 응답의 <b>정답/오답</b>이 표시됩니다.</p>
-      <p>먼저 연습 시행을 해 보겠습니다.</p>`, { data: { task_phase: "instr_double" } }));
-    tl.push(...trialsFor("double", specList(Math.ceil(C.nPracDouble / 3)).slice(0, C.nPracDouble), "practice_double", 0));
-    tl.push(space(`<div class="center"><h3>연습이 끝났습니다</h3><p>이제 본 과제를 시작합니다. 연습과 같은 방식입니다.<br>중간에 쉬는 시간이 있습니다.</p></div>`, { data: { task_phase: "instr_double" } }));
-    tl.push(...trialsFor("double", specList(C.nDouble), "main_double", C.breakDouble));
+    const singleBlock = (first) => {
+      const out = [];
+      if (first) {
+        out.push(...withPhase(basicPages(1, 3), "instr_single"));
+        out.push(space(`<h3>과제 안내 (3/3)</h3>
+          <p>빨리 누르는 것보다 <b>정확하게</b> 판단하는 것이 중요합니다. 시간 제한은 두지 않습니다.</p>
+          <p>${limitTxt}</p>
+          <p>응답 후에 <b>정답/오답</b>이 표시됩니다. 거의 구분이 안 되는 시행도 있으니, 확신이 없어도 최선의 판단을 해 주세요.</p>
+          <p>먼저 연습 시행을 해 보겠습니다.</p>`, { data: { task_phase: "instr_single" } }));
+      } else {
+        out.push(space(`<div class="center"><h3>잘 하셨습니다</h3><p>다음 과제는 방식이 조금 다릅니다. 안내를 잘 읽어 주세요.</p></div>`, { data: { task_phase: "instr_single" } }));
+        out.push(space(`<h3>새 과제 안내</h3>
+          <p>이번에는 <b>한 시행에서 한 번만</b> 응답합니다. 정사각형을 보고 <b>흰 점이 더 많은지, 더 적은지</b> 판단해 주세요.</p>
+          <p>"밝다" → <span class="kbd">J</span> 키 &nbsp;/&nbsp; "어둡다" → <span class="kbd">F</span> 키 (앞 과제의 첫 번째 응답과 같습니다)</p>
+          <p>빨리 누르는 것보다 <b>정확하게</b> 판단하는 것이 중요합니다. 시간 제한은 두지 않습니다. ${limitTxt}</p>
+          <p>응답 후에 <b>정답/오답</b>이 표시됩니다. 먼저 연습 시행을 해 보겠습니다.</p>`, { data: { task_phase: "instr_single" } }));
+      }
+      out.push(...trialsFor("single", specList(Math.ceil(C.nPracSingle / 3)).slice(0, C.nPracSingle), "practice_single", 0));
+      out.push(space(`<div class="center"><h3>연습이 끝났습니다</h3><p>이제 본 과제를 시작합니다. 연습과 같은 방식입니다.</p></div>`, { data: { task_phase: "instr_single" } }));
+      out.push(...trialsFor("single", specList(C.nSingle), "main_single", C.breakSingle));
+      return out;
+    };
+
+    const doubleBlock = (first) => {
+      const out = [];
+      const tot = first ? 5 : 3, off = first ? 2 : 0;
+      const ttl = (n) => first ? `과제 안내 (${n + off}/${tot})` : `새 과제 안내 (${n}/${tot})`;
+      if (first) out.push(...withPhase(basicPages(1, tot), "instr_double"));
+      else out.push(space(`<div class="center"><h3>잘 하셨습니다</h3><p>다음 과제는 방식이 조금 다릅니다. 안내를 잘 읽어 주세요.</p></div>`, { data: { task_phase: "instr_double" } }));
+      out.push(space(`<h3>${ttl(1)}</h3>
+        <p>이 과제에서는 <b>한 시행에서 두 번</b> 응답합니다.</p>
+        <p><b>첫 번째 응답:</b> ${first ? "" : "이전과 같이 "}<span class="kbd">F</span>(어둡다) 또는 <span class="kbd">J</span>(밝다)를 누릅니다.</p>
+        <p>첫 응답 후에도 <b>정사각형은 계속 바뀝니다.</b></p>`, { data: { task_phase: "instr_double" } }));
+      out.push(space(`<h3>${ttl(2)}</h3>
+        <p><b>두 번째 응답:</b> 첫 번째 응답이 맞다고 생각하면 <b>"확인"</b>, 바꾸고 싶으면 <b>"번복"</b>을 누릅니다.</p>
+        <p style="font-size:26px" class="center">확인 → <span class="kbd">${confirmKey}</span> &nbsp;&nbsp;&nbsp; 번복 → <span class="kbd">${overturnKey}</span></p>
+        <p>두 번째 응답 때는 화면 아래에 이 키가 표시됩니다. 번복하면 첫 응답과 반대 답이 최종 응답이 됩니다.</p>`, { data: { task_phase: "instr_double" } }));
+      out.push(space(`<h3>${ttl(3)}</h3>
+        <p><b>최종 응답(두 번째 응답)</b>의 정확도만 중요합니다. 첫 번째 응답의 정오는 점수에 반영되지 않습니다. 다만 첫 응답은 반드시 해 주세요.</p>
+        <p>시간 제한은 두지 않으며 정확하게 판단해 주세요. ${limitTxt}</p>
+        <p>응답 후에 최종 응답의 <b>정답/오답</b>이 표시됩니다.</p>
+        <p>먼저 연습 시행을 해 보겠습니다.</p>`, { data: { task_phase: "instr_double" } }));
+      out.push(...trialsFor("double", specList(Math.ceil(C.nPracDouble / 3)).slice(0, C.nPracDouble), "practice_double", 0));
+      out.push(space(`<div class="center"><h3>연습이 끝났습니다</h3><p>이제 본 과제를 시작합니다. 연습과 같은 방식입니다.<br>중간에 쉬는 시간이 있습니다.</p></div>`, { data: { task_phase: "instr_double" } }));
+      out.push(...trialsFor("double", specList(C.nDouble), "main_double", C.breakDouble));
+      return out;
+    };
+
+    if (order === "ds") tl.push(...doubleBlock(true), ...singleBlock(false));
+    else tl.push(...singleBlock(true), ...doubleBlock(false));
 
     // ===== 사후 문항 (사용 기기 1문항만) =====
     tl.push({

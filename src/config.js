@@ -1,5 +1,6 @@
 // 실험 설정. URL 파라미터로 대부분 덮어쓸 수 있다.
 //   예) index.html?pid=P07
+//       index.html?pid=P08&ord=ds                              (블록 순서: sd=단일→이중 기본, ds=이중→단일)
 //       index.html?pid=T01&d=0.03,0.05,0.09&nosave=1&debug=1   (파일럿 / 테스트)
 const DATAPIPE_EXPERIMENT_ID = "cBoarMMoufM0";   // DataPipe 대시보드의 실험 ID (Google Drive 저장)
 const CODE_VERSION = "0.1.0";
@@ -12,6 +13,7 @@ const DDM_CONFIG = (() => {
   if (deltas.length !== 3 || deltas.some(x => !(x > 0 && x < 0.5))) deltas = [0.02, 0.04, 0.08];
 
   const kmRaw = P.get("km");
+  const ordRaw = (P.get("ord") || "").trim().toLowerCase();   // sd = 단일→이중, ds = 이중→단일
   return {
     pid: (P.get("pid") || "").trim(),
     deltas,                                   // 흰 픽셀 비율 .50 ± Δ (난이도 어려움 → 쉬움)
@@ -23,6 +25,8 @@ const DDM_CONFIG = (() => {
     breakDouble: Math.round(num("brkd", 50)),
     km: kmRaw === "1" ? 1 : 0,                         // R2 키: 0 = F 확인/J 번복 (기본, 전원 고정), 1 = F 번복/J 확인
     kmSource: kmRaw === "0" || kmRaw === "1" ? "url" : "fixed_default",
+    order: ordRaw === "ds" ? "ds" : "sd",                         // 블록 순서 (URL로 고정; 없으면 sd)
+    orderSource: ordRaw === "sd" || ordRaw === "ds" ? "url" : (ordRaw ? "invalid_default" : "fixed_default"),
     fixMs: Math.round(num("fix", 500)),
     fbMs: Math.round(num("fb", 500)),
     r1MaxMs: Math.round(num("r1max", 12000)), // 시간 안내용 상한(이 이상이면 시행 무효, 분석 컷오프는 사후에 별도 지정)
