@@ -21,7 +21,8 @@ const DDM_CONFIG = (() => {
     nPracDouble: Math.round(num("npd", 9)),
     breakSingle: Math.round(num("brks", 35)), // 휴식 간격(시행). 휴식은 참가자가 버튼을 눌러야 재개
     breakDouble: Math.round(num("brkd", 50)),
-    km: kmRaw === "0" ? 0 : kmRaw === "1" ? 1 : null,  // R2 키: 0 = F 확인/J 번복, 1 = F 번복/J 확인, 없으면 pid로 역균형
+    km: kmRaw === "1" ? 1 : 0,                         // R2 키: 0 = F 확인/J 번복 (기본, 전원 고정), 1 = F 번복/J 확인
+    kmSource: kmRaw === "0" || kmRaw === "1" ? "url" : "fixed_default",
     fixMs: Math.round(num("fix", 500)),
     fbMs: Math.round(num("fb", 500)),
     r1MaxMs: Math.round(num("r1max", 12000)), // 시간 안내용 상한(이 이상이면 시행 무효, 분석 컷오프는 사후에 별도 지정)

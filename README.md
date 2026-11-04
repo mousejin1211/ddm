@@ -7,7 +7,7 @@ jsPsych 8 기반 온라인 실험. GitHub Pages로 배포하고, 데이터는 Da
 **단일반응** 안내·연습 9·본 105 (난이도당 35) → **이중반응** 안내·연습 9·본 300 (난이도당 100) → 사후 문항 → 저장
 
 - 자극: 64×64 흑백 픽셀, 흰 픽셀 비율 .50 ± Δ (Δ = .02 / .04 / .08, 난이도 3수준 블록 내 섞임). 시행마다 4장을 순환하며 R2(이중) 또는 R1(단일) 응답 전까지 계속 바뀝니다. R1 이후에도 정지하지 않습니다.
-- R1: `F` = 어둡다, `J` = 밝다. R2(이중반응): 확인/번복. 키 배정은 `km`(0: F 확인·J 번복 / 1: 반대). URL에 없으면 참가자 번호의 홀짝으로 역균형(홀수 → 0).
+- R1: `F` = 어둡다, `J` = 밝다. R2(이중반응): 확인/번복. 키 배정은 `km`(0: F 확인·J 번복 / 1: 반대). **기본은 전원 km=0 고정**이며 R1 키도 고정입니다. 이 경우 `same_key`(같은 키 반복)는 어둡다(F) 응답 뒤의 확인에서만 생기므로 응답 종류와 교란됩니다 (한계로 기술).
 - 피드백: 단일 = R1 정오답, 이중 = 최종(R2) 정오답, 500 ms.
 - 시간 상한: R1 12 s, R2는 R1 후 8 s (안내용. 분석 컷오프는 사후에 따로 지정).
 - 주사율: 화면 점검에서 측정 → 패치 교체 프레임 수 = round(Hz / 67). 60 Hz면 1프레임(≈60 Hz), 120/144 Hz면 2프레임.
@@ -23,7 +23,7 @@ https://mousejin1211.github.io/ddm/?pid=P01
 |---|---|---|
 | `pid` | – | 참가자 번호 |
 | `d` | `0.02,0.04,0.08` | 난이도 Δ (어려움→쉬움). 파일럿에서 정확도 약 .65/.80/.95에 맞게 조정 |
-| `km` | 번호 홀짝 | R2 키 배정 0 또는 1 |
+| `km` | 0 (고정) | R2 키 배정 0(F 확인) 또는 1(J 확인) |
 | `ns` / `nd` | 35 / 100 | 단일/이중 난이도당 본 시행 수 |
 | `nps` / `npd` | 9 / 9 | 연습 시행 수(총) |
 | `brks` / `brkd` | 35 / 50 | 휴식 간격(시행). 휴식은 자유롭게 쉬고 "계속하기" 버튼으로 재개, 휴식 시간은 `break` 행의 `rt`(ms) |
@@ -47,7 +47,7 @@ https://mousejin1211.github.io/ddm/?pid=P01
 `r1_key`·`r1_choice`·`rt1`(ms, 자극 onset 기준)·`r1_correct`, `r2_key`·`r2_action`(confirm/overturn)·`r2_choice`·`rt2_abs`(onset 기준)·`t2`(R1→R2 간격),
 `final_correct`, `same_key`(R2 키 = R1 키), `status`(ok / r1_timeout / r2_timeout),
 `n_frames`·`frame_mean`·`frame_sd`·`frame_max`·`n_long_frames`(공칭 간격의 1.5배 초과), `n_events`(시행 중 창 이탈 등 이벤트 수).
-전체 행에 `pid`, `km`, `km_source`, `refresh_hz`, `frames_per_patch`, `deltas`, `test_mode`가 붙습니다.
+전체 행에 `pid`, `km`, `km_source`(url / fixed_default), `refresh_hz`, `frames_per_patch`, `deltas`, `test_mode`가 붙습니다.
 `display_check` 행: 주사율, 화면·창 크기, devicePixelRatio, 전체화면 여부, user agent.
 `post_survey` 행: `device`, `guess`, `disturb`, `event_log`(blur/focus/탭 전환/전체화면/크기 변경 타임스탬프 JSON).
 

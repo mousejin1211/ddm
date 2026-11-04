@@ -43,14 +43,8 @@
     const runId = `${now.getFullYear()}${p2(now.getMonth() + 1)}${p2(now.getDate())}-${p2(now.getHours())}${p2(now.getMinutes())}${p2(now.getSeconds())}`;
     const filename = `${pid}_${runId}.csv`;                 // DataPipe: 실험 안에서 파일명이 유일해야 함
 
-    // R2 키 배정: URL km 우선, 없으면 참가자 번호 숫자의 홀짝으로 역균형
-    let km, kmSource;
-    if (C.km !== null) { km = C.km; kmSource = "url"; }
-    else {
-      const digits = pid.replace(/\D/g, "");
-      if (digits) { km = parseInt(digits, 10) % 2 === 1 ? 0 : 1; kmSource = "pid_parity"; }
-      else { km = Math.random() < 0.5 ? 0 : 1; kmSource = "random"; }
-    }
+    // R2 키 배정: 전원 고정 (기본 km=0: F = 확인, J = 번복). URL의 km=1로만 바꿀 수 있다.
+    const km = C.km, kmSource = C.kmSource;
     const confirmKey = km === 0 ? "F" : "J", overturnKey = km === 0 ? "J" : "F";
 
     let running = true;
