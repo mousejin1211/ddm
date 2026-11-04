@@ -193,6 +193,35 @@
       },
     });
 
+    // ===== 사전 척도 (src/scale.js의 items가 있을 때만) =====
+    if (SCALE.items.length) {
+      const pts = SCALE.points;
+      const legend = SCALE.labels && SCALE.labels.length === pts
+        ? SCALE.labels.map((t, k) => `${k + 1} = ${t}`).join(" &nbsp;·&nbsp; ")
+        : `1 = ${SCALE.low} &nbsp;…&nbsp; ${pts} = ${SCALE.high}`;
+      const itemsHtml = SCALE.items.map((it, i) => `
+        <div class="likert-item">
+          <p class="likert-q"><b>${i + 1}.</b> ${it.text}</p>
+          <div class="likert-opts">${Array.from({ length: pts }, (_, k) =>
+            `<label><input type="radio" name="scale_${i + 1}" value="${k + 1}" ${k === 0 ? "required" : ""}><span>${k + 1}</span></label>`).join("")}</div>
+        </div>`).join("");
+      tl.push({
+        type: jsPsychSurveyHtmlForm,
+        preamble: `<h3>${SCALE.title}</h3><p>${SCALE.instruction}</p>`,
+        html: `<div class="likert-legend">${legend}</div>${itemsHtml}`,
+        button_label: "제출", data: { task_phase: "scale" },
+        on_finish: (d) => {
+          let total = 0;
+          SCALE.items.forEach((it, i) => {
+            const raw = Number(d.response["scale_" + (i + 1)]);
+            d["scale_" + (i + 1)] = raw;                              // 원점수 (역채점 전)
+            total += it.reverse ? pts + 1 - raw : raw;
+          });
+          d.scale_total = total; d.scale_n_items = SCALE.items.length;
+        },
+      });
+    }
+
     // ===== 단일반응 =====
     tl.push(space(`<h3>과제 안내 (1/3)</h3>
       <p>검은색과 흰색 점으로 이루어진 정사각형이 화면에 나타납니다. 점들의 배열은 계속 바뀝니다.</p>

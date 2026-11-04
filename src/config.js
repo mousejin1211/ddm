@@ -15,11 +15,11 @@ const DDM_CONFIG = (() => {
   return {
     pid: (P.get("pid") || "").trim(),
     deltas,                                   // 흰 픽셀 비율 .50 ± Δ (난이도 어려움 → 쉬움)
-    nSingle: Math.round(num("ns", 35)),       // 단일반응: 난이도당 시행 수 (3수준 → 총 105)
+    nSingle: Math.round(num("ns", 36)),       // 단일반응: 난이도당 시행 수 (3수준 → 총 108, 밝음/어둠 54/54)
     nDouble: Math.round(num("nd", 100)),      // 이중반응: 난이도당 시행 수 (3수준 → 총 300)
     nPracSingle: Math.round(num("nps", 9)),   // 연습 시행 수 (총)
     nPracDouble: Math.round(num("npd", 9)),
-    breakSingle: Math.round(num("brks", 35)), // 휴식 간격(시행). 휴식은 참가자가 버튼을 눌러야 재개
+    breakSingle: Math.round(num("brks", 36)), // 휴식 간격(시행). 휴식은 참가자가 버튼을 눌러야 재개
     breakDouble: Math.round(num("brkd", 50)),
     km: kmRaw === "1" ? 1 : 0,                         // R2 키: 0 = F 확인/J 번복 (기본, 전원 고정), 1 = F 번복/J 확인
     kmSource: kmRaw === "0" || kmRaw === "1" ? "url" : "fixed_default",
