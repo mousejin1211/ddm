@@ -61,6 +61,10 @@ https://mousejin1211.github.io/ddm/?pid=P01
 ## 배포 (GitHub Pages)
 repo → Settings → Pages → Source: *Deploy from a branch*, Branch: `main` / `/ (root)` → Save.
 
+## 배경색
+- 글자가 있는 화면(동의·안내·설문·휴식·종료)은 `#BCBCBC`, 시행 화면(응시점·패치·피드백)만 `#808080` (`src/style.css`의 `--page-bg`, `--trial-bg`).
+- 선행연구(Ratcliff 등 2003, Evans 등 2017)는 "회색 배경"이라고만 쓰고 색 코드는 밝히지 않았습니다. `#808080`은 관례적 중간 회색이고, `#BCBCBC`는 흑백 반반 패치의 평균 광량에 해당하는 sRGB 값(약 188, 감마 가정)입니다.
+
 ## 반드시 교체·확인할 것
 - `src/consent.js`: **임시 동의서입니다. IRB 승인 문구로 교체**하세요.
 - 시행 중 전체화면을 해제해도 자동으로 멈추지 않고 기록만 합니다 (Zoom 화면으로 확인).

@@ -105,6 +105,11 @@
         },
       }],
       on_finish: () => { running = false; },
+      // 시행(ddm-trial) 화면만 중간 회색 배경, 그 외 화면은 밝은 회색 (시행 사이에는 배경이 바뀌지 않음)
+      on_trial_start: (trial) => {
+        const isTrial = !!(trial.type && trial.type.info && trial.type.info.name === "ddm-trial");
+        document.documentElement.classList.toggle("ddm-gray", isTrial);
+      },
     });
     if (C.nosave) running = true;
     if (C.debug) window.__ddm.jsPsych = jsPsych;
