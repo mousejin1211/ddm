@@ -35,6 +35,12 @@ https://mousejin1211.github.io/ddm/?pid=P01
 
 예) 짧은 리허설: `?pid=T01&nosave=1&ns=3&nd=3&brks=99&brkd=99`
 
+## 실험자용 단축키 (참가자 안내문에는 없음)
+- **Esc** = 일시 중지, **Enter** = 재개. 중지 중에는 화면이 가려지고 Enter 외 키 입력이 차단됩니다.
+- 시행 중에 중지하면 그 시행은 **처음부터 다시** 진행됩니다. 중지된 횟수·단계는 `n_aborts`, `abort_phases`(예: `r1,r2`)에 기록되므로 분석에서 `n_aborts > 0` 시행은 제외하는 것을 권장합니다.
+- 전체화면이 해제되면(전체화면에서 Esc 포함) 자동으로 중지되고, Enter로 재개하면 전체화면으로 돌아갑니다.
+- 중지/재개 시각은 `post_survey` 행의 `event_log`에 `pause`(reason: `esc` / `fullscreen_exit`), `resume`으로 남습니다.
+
 ## 저장 (DataPipe → Google Drive)
 - 실험 ID는 `src/config.js`의 `DATAPIPE_EXPERIMENT_ID`. DataPipe 대시보드에서 **Accept new data**가 켜져 있어야 합니다.
 - 파일명: `참가자번호_날짜-시각.csv` (실험 안에서 유일해야 함). 시행마다 임시 저장되고, 중도 이탈 시 `.partial.json`으로 남습니다.

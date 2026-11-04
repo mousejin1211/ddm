@@ -44,6 +44,8 @@ class DdmTrialPlugin {
       n_long_frames: { type: jsPsychModule.ParameterType.INT },
       n_events: { type: jsPsychModule.ParameterType.INT },
       onset_abs: { type: jsPsychModule.ParameterType.FLOAT },
+      n_aborts: { type: jsPsychModule.ParameterType.INT },
+      abort_phases: { type: jsPsychModule.ParameterType.STRING },
     },
   };
 
@@ -57,7 +59,6 @@ class DdmTrialPlugin {
       const overturnKey = confirmKey === "f" ? "j" : "f";
       const choiceOf = (k) => (k === "j" ? "bright" : "dark");
       const round1 = (x) => Math.round(x * 10) / 10;
-      const evStart = (window.DDM_EVENTS || []).length;
       const dbg = window.__ddm;                       // debug=1일 때만 존재 (테스트 봇용)
 
       display_element.innerHTML = `
@@ -86,21 +87,37 @@ class DdmTrialPlugin {
         for (let k = 0; k < nWhite; k++) { const o = 4 * idx[k]; img.data[o] = img.data[o + 1] = img.data[o + 2] = 255; }
         return img;
       };
-      const patches = Array.from({ length: trial.cycle_n }, makePatch);
 
-      // ---- 상태
-      let phase = "fix";                // fix → wait_onset → r1 → (r2) → fb → done
-      let onset = null, raf = 0, frameCount = 0, lastIdx = -1;
-      const frameTimes = [];
-      let r1 = null, r2 = null;
+      // ---- 상태 (시도마다 초기화)
+      let patches, phase = "init", onset, raf = 0, frameCount, lastIdx, frameTimes, r1, r2, evStart;
       let tFix = 0, tR1 = 0, tR2 = 0;
+      const aborts = [];                                // 중지로 버려진 시도들이 어느 단계였는지
       const setPhase = (p) => { phase = p; if (dbg) { dbg.phase = p; dbg.truth = trial.truth; dbg.km = trial.km; dbg.mode = trial.mode; dbg.delta = Math.abs(trial.p_white - 0.5); } };
       const keyLabel = (stage) => stage === 1
         ? `<span class="kbd">F</span> 어둡다 &nbsp;&nbsp; <span class="kbd">J</span> 밝다`
         : `<span class="kbd">${confirmKey.toUpperCase()}</span> 확인 &nbsp;&nbsp; <span class="kbd">${overturnKey.toUpperCase()}</span> 번복`;
 
-      setPhase("fix");
-      tFix = setTimeout(startStimulus, trial.fix_ms);
+      function begin() {                                // 시도 시작 (중지 중이면 재개될 때까지 대기)
+        if (window.DDM_PAUSED) { setPhase("paused"); return; }
+        patches = Array.from({ length: trial.cycle_n }, makePatch);
+        onset = null; frameCount = 0; lastIdx = -1; frameTimes = []; r1 = null; r2 = null;
+        evStart = (window.DDM_EVENTS || []).length;
+        canvas.style.visibility = "hidden"; fixEl.style.display = "flex"; fbEl.style.display = "none"; keysEl.innerHTML = "";
+        setPhase("fix");
+        tFix = setTimeout(startStimulus, trial.fix_ms);
+      }
+
+      function onPause() {                              // 시행 진행 중 중지 → 이 시도를 버리고 대기
+        if (phase !== "fix" && phase !== "wait_onset" && phase !== "r1" && phase !== "r2") return;
+        cancelAnimationFrame(raf); clearTimeout(tFix); clearTimeout(tR1); clearTimeout(tR2);
+        document.removeEventListener("keydown", onKey, true);
+        aborts.push(phase);
+        canvas.style.visibility = "hidden"; fixEl.style.display = "none"; keysEl.innerHTML = "";
+        setPhase("paused");
+      }
+      function onResume() { if (phase === "paused") begin(); }
+      window.addEventListener("ddm:pause", onPause);
+      window.addEventListener("ddm:resume", onResume);
 
       function startStimulus() {
         setPhase("wait_onset");
@@ -109,7 +126,7 @@ class DdmTrialPlugin {
       }
 
       function frame(ts) {
-        if (phase === "done" || phase === "fb") return;
+        if (phase !== "wait_onset" && phase !== "r1" && phase !== "r2") return;
         if (onset === null) {                         // 첫 프레임: 패치를 그리고 보이게 함
           onset = ts;
           fixEl.style.display = "none";
@@ -155,7 +172,7 @@ class DdmTrialPlugin {
       }
 
       function finish(status) {
-        if (phase === "fb" || phase === "done") return;
+        if (phase !== "r1" && phase !== "r2" && phase !== "wait_onset") return;
         setPhase("fb");
         cancelAnimationFrame(raf);
         clearTimeout(tFix); clearTimeout(tR1); clearTimeout(tR2);
@@ -173,6 +190,8 @@ class DdmTrialPlugin {
           n_frames: fs.n, frame_mean: fs.mean, frame_sd: fs.sd, frame_max: fs.max, n_long_frames: fs.long,
           n_events: (window.DDM_EVENTS || []).length - evStart,
           onset_abs: onset === null ? null : round1(onset),
+          n_aborts: aborts.length,
+          abort_phases: aborts.length ? aborts.join(",") : null,
         };
         if (!double) {
           out.final_correct = out.r1_correct;
@@ -201,8 +220,14 @@ class DdmTrialPlugin {
           fbEl.textContent = out.final_correct ? "정답" : "오답";
         }
         keysEl.innerHTML = "";
-        setTimeout(() => { setPhase("done"); resolve(out); }, dur);
+        setTimeout(() => {
+          setPhase("done");
+          window.removeEventListener("ddm:pause", onPause); window.removeEventListener("ddm:resume", onResume);
+          resolve(out);
+        }, dur);
       }
+
+      begin();
     });
   }
 }

@@ -12,6 +12,39 @@
   window.addEventListener("resize", () => logEv("resize", { w: window.innerWidth, h: window.innerHeight }));
   if (C.debug) window.__ddm = { phase: "idle" };
 
+  // ---- 실험자용 긴급 중지: Esc = 일시 중지, Enter = 재개 (안내문에는 노출하지 않음)
+  window.DDM_PAUSED = false;
+  window.DDM_FS_ARMED = false;                      // 전체화면 진입 후에만 true (전체화면 해제도 중지로 처리)
+  const pauseEl = document.createElement("div");
+  pauseEl.id = "ddm-pause";
+  pauseEl.textContent = "잠시 기다려 주세요";
+  document.documentElement.appendChild(pauseEl);   // body가 아닌 html 아래: jsPsych의 화면 갱신에 지워지지 않게
+  const pauseNow = (reason) => {
+    if (window.DDM_PAUSED) return;
+    window.DDM_PAUSED = true; pauseEl.style.display = "flex";
+    logEv("pause", { reason });
+    window.dispatchEvent(new Event("ddm:pause"));
+  };
+  const resumeNow = () => {
+    if (!window.DDM_PAUSED) return;
+    window.DDM_PAUSED = false; pauseEl.style.display = "none";
+    logEv("resume");
+    if (window.DDM_FS_ARMED && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});     // Enter 키 입력이 사용자 동작으로 인정됨
+    }
+    window.dispatchEvent(new Event("ddm:resume"));
+  };
+  window.addEventListener("keydown", (e) => {       // 캡처 단계: jsPsych·시행 코드보다 먼저 받는다
+    if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); pauseNow("esc"); return; }
+    if (window.DDM_PAUSED) {                         // 중지 중에는 Enter 외 모든 키 입력을 차단
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (e.key === "Enter" && !e.repeat) resumeNow();
+    }
+  }, true);
+  document.addEventListener("fullscreenchange", () => {   // 전체화면에서 Esc는 브라우저가 먼저 처리하므로 해제 자체를 중지로 취급
+    if (window.DDM_FS_ARMED && !document.fullscreenElement) pauseNow("fullscreen_exit");
+  });
+
   const isMobile = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent) ||
                    (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
   if (isMobile) {
@@ -156,6 +189,7 @@
 
     if (!C.nofs) tl.push({
       type: jsPsychFullscreen, fullscreen_mode: true, data: { task_phase: "fullscreen" },
+      on_finish: () => { window.DDM_FS_ARMED = true; },
       message: "<p>과제는 전체화면으로 진행됩니다.<br>아래 버튼을 누르면 전체화면으로 전환됩니다. 과제 중에는 전체화면을 끄지 마세요.</p>",
       button_label: "전체화면으로 시작",
     });
@@ -272,6 +306,7 @@
     });
     tl.push({
       type: jsPsychHtmlKeyboardResponse, choices: "NO_KEYS", trial_duration: 1200, data: { task_phase: "end" },
+      on_start: () => { window.DDM_FS_ARMED = false; },
       stimulus: '<p class="center">과제가 모두 끝났습니다.</p>',
     });
 
