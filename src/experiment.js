@@ -197,7 +197,7 @@
     if (SCALE.items.length) {
       const pts = SCALE.points;
       const legend = SCALE.labels && SCALE.labels.length === pts
-        ? SCALE.labels.map((t, k) => `${k + 1} = ${t}`).join(" &nbsp;·&nbsp; ")
+        ? SCALE.labels.map((t, k) => `<span>${k + 1} = ${t}</span>`).join("")
         : `1 = ${SCALE.low} &nbsp;…&nbsp; ${pts} = ${SCALE.high}`;
       const itemsHtml = SCALE.items.map((it, i) => `
         <div class="likert-item">
