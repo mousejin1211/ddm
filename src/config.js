@@ -9,8 +9,8 @@ const DDM_CONFIG = (() => {
   const P = new URLSearchParams(location.search);
   const num = (k, d) => { const v = P.get(k); const n = v === null || v === "" ? NaN : Number(v); return Number.isFinite(n) ? n : d; };
 
-  let deltas = (P.get("d") || "0.02,0.04,0.08").split(",").map(Number);
-  if (deltas.length !== 3 || deltas.some(x => !(x > 0 && x < 0.5))) deltas = [0.02, 0.04, 0.08];
+  let deltas = (P.get("d") || "0.02,0.04,0.06").split(",").map(Number);
+  if (deltas.length !== 3 || deltas.some(x => !(x > 0 && x < 0.5))) deltas = [0.02, 0.04, 0.06];
 
   const kmRaw = P.get("km");
   const ordRaw = (P.get("ord") || "").trim().toLowerCase();   // sd = 단일→이중, ds = 이중→단일
